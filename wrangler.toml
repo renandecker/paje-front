@@ -1,0 +1,22 @@
+# Configuração do Cloudflare Workers (Static Assets) para publicar o build
+# de produção do front-end (Vite/React).
+#
+# Deploy:
+#   npm run build          # gera ./dist
+#   npx wrangler deploy    # publica ./dist no Cloudflare Workers
+#
+# (ou "npm run deploy", que já encadeia os dois passos — veja package.json)
+
+name = "paje-front"
+compatibility_date = "2024-09-23"
+
+[assets]
+directory = "./dist"
+
+# Essencial para SPA (React Router): sem isso, recarregar a página em
+# qualquer rota que não seja a raiz (ex.: /materiais, /fornecedores/3,
+# /moveis/5) dá 404, porque esses caminhos não existem como arquivos reais
+# em ./dist — só existem como rotas do lado do cliente. Com
+# "single-page-app", qualquer caminho não encontrado cai de volta no
+# index.html, e o React Router assume a partir daí.
+not_found_handling = "single-page-application"
