@@ -3,10 +3,11 @@
 // sobrescrito em qualquer ambiente com a variável VITE_API_URL.
 const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-// O backend pode estar hospedado num plano gratuito que "dorme" após 15min
-// sem acessos — o primeiro acesso seguinte leva de 15 a 30s pra responder
-// (cold start). Esses dois números controlam esse comportamento:
-const TEMPO_LIMITE_MS = 45_000;      // aborta a chamada só depois de 45s (dá folga pros até 30s do cold start)
+// O backend pode estar hospedado num plano gratuito (Render) que desativa a
+// instância por inatividade — segundo o próprio aviso do Render, isso pode
+// atrasar as próximas requisições em 50 segundos OU MAIS. Esses dois números
+// controlam esse comportamento:
+const TEMPO_LIMITE_MS = 75_000;      // aborta a chamada só depois de 75s (folga acima dos 50s+ avisados pelo Render)
 const LIMIAR_AVISO_MS = 3_500;       // se passar disso sem resposta, avisamos a tela que "pode ser cold start"
 
 // Contador de quantas chamadas em andamento já passaram do limiar acima.
@@ -56,7 +57,7 @@ async function request(path, options = {}) {
   } catch (e) {
     if (e.name === 'AbortError') {
       throw new Error(
-        'O servidor demorou demais para responder (mais de 45s). Se ele estava inativo, ' +
+        'O servidor demorou demais para responder (mais de 75s). Se ele estava inativo, ' +
         'tente novamente em alguns segundos — costuma voltar ao normal no segundo acesso.'
       );
     }

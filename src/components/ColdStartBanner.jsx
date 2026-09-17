@@ -26,8 +26,9 @@ export default function ColdStartBanner() {
     <div className="cold-start-banner" role="status">
       <span className="cold-start-spinner" aria-hidden="true" />
       <span>
-        Acordando o servidor… o primeiro acesso após um período parado pode levar
-        até 30 segundos. Aguarde, não é necessário recarregar a página.
+        Acordando o servidor… a instância gratuita foi desativada por inatividade,
+        o que pode atrasar essa resposta em 50 segundos ou mais. Aguarde, não é
+        necessário recarregar a página.
       </span>
     </div>
   )
