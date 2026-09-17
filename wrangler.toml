@@ -1,4 +1,5 @@
 name = "paje-front"
+main = "src/worker.js"
 compatibility_date = "2026-09-17"
 
 [assets]
