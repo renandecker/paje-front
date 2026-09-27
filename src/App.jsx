@@ -1,5 +1,5 @@
-import React from 'react'
-import { NavLink, Route, Routes, Navigate } from 'react-router-dom'
+import React, { useState } from 'react'
+import { NavLink, Route, Routes, Navigate, useLocation } from 'react-router-dom'
 import ColdStartBanner from './components/ColdStartBanner.jsx'
 import Painel from './pages/Painel.jsx'
 import Materiais from './pages/Materiais.jsx'
@@ -27,10 +27,46 @@ const NAV_ITEMS = [
 ]
 
 export default function App() {
+  const [menuAberto, setMenuAberto] = useState(false)
+  const location = useLocation()
+
+  // Fecha o menu mobile a cada troca de rota
+  React.useEffect(() => {
+    setMenuAberto(false)
+  }, [location.pathname])
+
+  // Trava o scroll do body quando o drawer está aberto
+  React.useEffect(() => {
+    document.body.style.overflow = menuAberto ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [menuAberto])
+
   return (
     <div className="shell">
       <ColdStartBanner />
-      <aside className="sidebar">
+
+      {/* Barra superior — visível só no mobile (<=900px via CSS) */}
+      <header className="topbar">
+        <button
+          type="button"
+          className={'nav-toggle' + (menuAberto ? ' is-open' : '')}
+          aria-label={menuAberto ? 'Fechar menu' : 'Abrir menu'}
+          aria-expanded={menuAberto}
+          onClick={() => setMenuAberto((v) => !v)}
+        >
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+        </button>
+        <img src="/logo-moveis-paje.png" alt="Móveis Pajé" className="topbar-logo" />
+        <span className="topbar-spacer" />
+      </header>
+
+      {menuAberto && (
+        <div className="nav-overlay" onClick={() => setMenuAberto(false)} aria-hidden="true" />
+      )}
+
+      <aside className={'sidebar' + (menuAberto ? ' is-open' : '')}>
         <div className="brand">
           <img src="/logo-moveis-paje.png" alt="Móveis Pajé" className="brand-logo" />
         </div>
@@ -41,6 +77,7 @@ export default function App() {
               key={item.to}
               to={item.to}
               end={item.end}
+              onClick={() => setMenuAberto(false)}
               className={({ isActive }) => 'nav-link' + (isActive ? ' is-active' : '')}
             >
               {item.label}

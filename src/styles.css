@@ -26,6 +26,8 @@
 
 html, body, #root { height: 100%; }
 
+html { -webkit-text-size-adjust: 100%; }
+
 body {
   margin: 0;
   background: var(--bg);
@@ -33,7 +35,12 @@ body {
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.5;
+  overflow-x: hidden;
 }
+
+img { max-width: 100%; height: auto; }
+
+input, select, textarea, button { max-width: 100%; }
 
 h1, h2, h3 {
   font-family: var(--font-display);
@@ -42,7 +49,7 @@ h1, h2, h3 {
   color: var(--ink);
 }
 
-h1 { font-size: 2rem; letter-spacing: -0.01em; }
+h1 { font-size: clamp(1.5rem, 4.5vw, 2rem); letter-spacing: -0.01em; }
 h2 { font-size: 1.15rem; }
 h3.subhead { font-size: 0.95rem; margin-top: 1.25rem; color: var(--muted); font-family: var(--font-body); font-weight: 600; }
 
@@ -57,8 +64,14 @@ a:hover { text-decoration: underline; }
 
 .shell {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 240px minmax(0, 1fr);
   min-height: 100vh;
+}
+
+/* Barra superior mobile + overlay do drawer (escondidos no desktop) */
+.topbar,
+.nav-overlay {
+  display: none;
 }
 
 .sidebar {
@@ -128,6 +141,10 @@ a:hover { text-decoration: underline; }
 .content {
   padding: 2.5rem 3rem 4rem;
   max-width: 1180px;
+  width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  justify-self: stretch;
 }
 
 /* ---------- Page head ---------- */
@@ -216,6 +233,8 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--line);
   padding: 1.5rem 1.6rem;
   margin-bottom: 1.5rem;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .panel-toolbar {
@@ -224,6 +243,7 @@ a:hover { text-decoration: underline; }
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .panel-toolbar h2 { margin: 0; }
@@ -249,6 +269,13 @@ a:hover { text-decoration: underline; }
 }
 
 /* ---------- Tables ---------- */
+
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -0.25rem;
+  padding: 0 0.25rem 0.25rem;
+}
 
 .table {
   width: 100%;
@@ -283,7 +310,7 @@ a:hover { text-decoration: underline; }
   border-radius: var(--radius);
 }
 
-.row-actions { display: flex; gap: 0.6rem; white-space: nowrap; }
+.row-actions { display: flex; gap: 0.6rem; white-space: nowrap; flex-wrap: wrap; }
 
 /* ---------- Buttons ---------- */
 
@@ -296,6 +323,8 @@ a:hover { text-decoration: underline; }
   font-weight: 500;
   cursor: pointer;
   border-radius: var(--radius);
+  min-height: 44px;
+  touch-action: manipulation;
 }
 
 .btn-primary:hover { background: #6f5726; }
@@ -306,7 +335,9 @@ a:hover { text-decoration: underline; }
   color: var(--accent);
   cursor: pointer;
   font-size: 0.85rem;
-  padding: 0;
+  padding: 0.4rem 0.2rem;
+  min-height: 36px;
+  touch-action: manipulation;
 }
 
 .btn-link:hover { text-decoration: underline; }
@@ -334,11 +365,17 @@ a:hover { text-decoration: underline; }
 
 input, select, textarea {
   font: inherit;
+  font-size: 16px; /* evita zoom automático no iOS */
   padding: 0.5rem 0.6rem;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--paper);
   color: var(--ink);
+  min-height: 42px;
+}
+
+@media (min-width: 901px) {
+  input, select, textarea { font-size: inherit; }
 }
 
 input:focus, select:focus, textarea:focus {
@@ -355,6 +392,7 @@ input:focus, select:focus, textarea:focus {
   display: flex;
   align-items: end;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .inline-form label {
@@ -416,6 +454,7 @@ input:focus, select:focus, textarea:focus {
   padding-top: 1rem;
   border-top: 1px solid var(--line-strong);
   font-size: 0.9rem;
+  flex-wrap: wrap;
 }
 
 .kpi-row-caixa {
@@ -438,11 +477,10 @@ input:focus, select:focus, textarea:focus {
 /* ---------- Cold-start banner (backend "acordando") ---------- */
 
 .cold-start-banner {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
+  grid-column: 1 / -1;
+  z-index: 120;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -471,10 +509,165 @@ input:focus, select:focus, textarea:focus {
 
 /* ---------- Responsive ---------- */
 
+/* Telas médias / notebooks menores: aperta o conteúdo sem quebrar o sidebar */
+@media (max-width: 1200px) {
+  .content { padding: 2rem 1.75rem 3rem; }
+  .split { gap: 1rem; }
+  .panel { padding: 1.25rem; }
+}
+
+/* Tablet / mobile: sidebar vira drawer + topbar com hambúrguer */
 @media (max-width: 900px) {
-  .shell { grid-template-columns: 1fr; }
-  .sidebar { position: static; height: auto; }
+  .shell { grid-template-columns: minmax(0, 1fr); }
+
+  /* Banner sai do fluxo fixo no mobile para não cobrir a topbar */
+  .cold-start-banner { position: static; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 110;
+    background: var(--teal);
+    color: #ece7dc;
+    padding: 0.6rem 1rem;
+    min-height: 60px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  }
+
+  .topbar-logo {
+    height: 36px;
+    width: auto;
+    max-width: 180px;
+    object-fit: contain;
+  }
+
+  .topbar-spacer { flex: 1; }
+
+  .nav-toggle {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: var(--radius);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    touch-action: manipulation;
+  }
+
+  .nav-toggle span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .nav-toggle.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-toggle.is-open span:nth-child(2) { opacity: 0; }
+  .nav-toggle.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .nav-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 104;
+    background: rgba(16, 28, 28, 0.55);
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(300px, 85vw);
+    height: 100dvh;
+    z-index: 105;
+    transform: translateX(-105%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+    padding-top: 1.25rem;
+  }
+
+  .sidebar.is-open {
+    transform: translateX(0);
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .brand-logo { max-width: 200px; }
+
+  .nav-link {
+    padding: 0.8rem 0.6rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
   .split, .split-wide { grid-template-columns: 1fr; }
   .kpi-row { grid-template-columns: repeat(2, 1fr); }
-  .content { padding: 1.5rem; }
+  .content { padding: 1.5rem 1rem 3rem; max-width: 100%; }
+
+  .panel { overflow-x: auto; }
+  .table { min-width: 560px; }
+  .table .table { min-width: 420px; }
+
+  .form-grid { grid-template-columns: 1fr 1fr; }
+  .peca-row { grid-template-columns: 1fr 1fr; }
+  .peca-row button { grid-column: span 2; justify-self: start; }
+
+  .inline-form { align-items: stretch; }
+  .inline-form label { min-width: 140px; flex: 1 1 140px; }
+
+  .banner, .formula { overflow-wrap: break-word; }
+  .lede { max-width: 100%; }
+}
+
+/* Celulares pequenos */
+@media (max-width: 560px) {
+  body { font-size: 14px; }
+
+  .content { padding: 1rem 0.75rem 2.5rem; }
+  .page-head { margin-bottom: 1.25rem; }
+
+  .kpi-row,
+  .kpi-row-caixa { grid-template-columns: 1fr; }
+  .kpi-value { font-size: 1.6rem; }
+
+  .panel { padding: 1rem 0.85rem; margin-bottom: 1rem; }
+  .panel-toolbar { align-items: stretch; flex-direction: column; }
+  .panel-toolbar select { width: 100%; }
+
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid .span-2,
+  .form-actions { grid-column: span 1; }
+
+  .btn-primary { width: 100%; padding: 0.8rem 1rem; }
+  .form-actions .btn-primary { width: 100%; }
+
+  .peca-row { grid-template-columns: 1fr; }
+  .peca-row button { grid-column: span 1; }
+
+  .inline-form { flex-direction: column; align-items: stretch; }
+  .inline-form label { min-width: 0; }
+
+  .summary-row { gap: 0.75rem; flex-direction: column; }
+
+  .plain-list li { flex-direction: column; align-items: stretch; gap: 0.2rem; }
+
+  .result-block > div { flex-direction: column; gap: 0.15rem; }
+  .result-highlight { text-align: left; }
+
+  .topbar-logo { height: 32px; max-width: 150px; }
+  .sidebar-foot { display: none; }
+
+  .cold-start-banner { font-size: 0.78rem; padding: 0.5rem 0.75rem; }
 }
