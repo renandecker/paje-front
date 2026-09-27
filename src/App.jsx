@@ -35,17 +35,22 @@ export default function App() {
     setMenuAberto(false)
   }, [location.pathname])
 
-  // Trava o scroll do body quando o drawer está aberto
+  // Trava o scroll do body e fecha com Esc quando o drawer está aberto
   React.useEffect(() => {
     document.body.style.overflow = menuAberto ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    function aoTeclar(e) {
+      if (e.key === 'Escape') setMenuAberto(false)
+    }
+    if (menuAberto) window.addEventListener('keydown', aoTeclar)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', aoTeclar)
+    }
   }, [menuAberto])
 
   return (
     <div className="shell">
-      <ColdStartBanner />
-
-      {/* Barra superior — visível só no mobile (<=900px via CSS) */}
+      {/* Barra superior — só aparece no mobile (<=900px via CSS) */}
       <header className="topbar">
         <button
           type="button"
@@ -59,8 +64,9 @@ export default function App() {
           <span aria-hidden="true" />
         </button>
         <img src="/logo-moveis-paje.png" alt="Móveis Pajé" className="topbar-logo" />
-        <span className="topbar-spacer" />
       </header>
+
+      <ColdStartBanner />
 
       {menuAberto && (
         <div className="nav-overlay" onClick={() => setMenuAberto(false)} aria-hidden="true" />
